@@ -17,17 +17,37 @@ formEle.addEventListener("submit", (evt) => {
   const isErrorr = validation(nameInput, priceInput);
   if (!isErrorr) {
     const id = products.length;
-    products.push({
+    let proAll = {
       id: id,
       name: nameInput,
       price: priceInput,
-    });
+    }
+    products.push(proAll);
+    //add to UI
     addItemUI(id, nameInput, priceInput);
+    //reset input field
     resetTo(nameInput, priceInput);
+    setTheDateAtLocalStr(proAll);
+
     console.log(products);
     removeElement();
   }
 });
+
+//setTheDateAtLocalStr
+ function setTheDateAtLocalStr(proAll){
+  let products;
+  if(localStorage.getItem('storeProducts')){
+    products = JSON.parse(localStorage.getItem('storeProducts'));
+    products.push(proAll);
+  localStorage.setItem('storeProducts',JSON.stringify(products));
+  }else{
+    products= [];
+    products.push(proAll);
+    localStorage.setItem('storeProducts',JSON.stringify(products));
+  }
+
+ }
 
 // recieve function
 function recinput() {
@@ -75,6 +95,7 @@ function removeElement() {
       const id = getTheId(e.target);
       removeFromUI(id);
       removeFromProducts(id);
+      removeFromLocalStor(id);
     }
   });
 }
@@ -84,12 +105,27 @@ function getTheId(Ele) {
   return Number(liEleG.classList[1].split("-")[1]);
 }
 
+// remove From ui
 function removeFromUI(id) {
   const dltEle = document.querySelector(`.item-${id}`);
   dltEle.remove();
 }
+// remove after update
+function removeAfterUpdate(products,id){
+ return products.filter((pro) => pro.id !== id);
+}
+// remove From products
 function removeFromProducts(id) {
-  products = products.filter((pro) => pro.id !== id);
+  const dateremoveafterupdate = removeAfterUpdate(products,id);
+  products = dateremoveafterupdate;
+}
+
+// remove From Local Storage
+function removeFromLocalStor(id){
+  // const products = removeAfterUpdate(id);
+  const products = JSON.parse(localStorage.getItem('storeProducts'));
+  const productAfterRemove = removeAfterUpdate(products,id);
+  localStorage.setItem('storeProducts',JSON.stringify(productAfterRemove));
 }
 
 // search
@@ -100,10 +136,10 @@ flterEle.addEventListener("keyup", (e) => {
   });
 
   // show the date
-  showTheDateSeacrch(resultAll);
+  showTheDateSearch(resultAll);
 });
 
-function showTheDateSeacrch(resultAll) {
+function showTheDateSearch(resultAll) {
     listGroupColl.innerHTML = " ";
   resultAll.forEach((item) => {
     const addDateHtml = `<li class="list-group-item item-${item.id} collection-item">
@@ -114,3 +150,10 @@ function showTheDateSeacrch(resultAll) {
     listGroupColl.insertAdjacentHTML("afterbegin", addDateHtml);
   });
 }
+
+document.addEventListener('DOMContentLoaded', (e)=>{
+  if(localStorage.getItem('storeProducts')){
+    const products = JSON.parse(localStorage.getItem('storeProducts'));
+    showTheDateSearch(products);
+  }
+});
